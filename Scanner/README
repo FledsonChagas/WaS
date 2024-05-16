@@ -1,0 +1,15 @@
+Estrutura do projeto
+
+scanner/
+│
+├── lib/
+│   ├── __init__.py
+│   ├── http_requests.py
+│   ├── security_headers.py
+│   ├── directory_enumeration.py
+│   ├── injection_tests.py
+│   ├── content_analysis.py
+│   ├── authentication_tests.py
+│   └── performance_tests.py
+│
+└── main.py
