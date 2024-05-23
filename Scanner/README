@@ -10,6 +10,10 @@ scanner/
 │   ├── injection_tests.py
 │   ├── content_analysis.py
 │   ├── authentication_tests.py
-│   └── performance_tests.py
+│   ├── performance_tests.py
+│   └── seclists/
+│       └── Discovery/
+│           └── Web-Content/
+│               └── common.txt
 │
 └── main.py
