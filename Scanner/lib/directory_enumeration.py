@@ -1,17 +1,21 @@
 from .http_requests import fetch_url
 from threading import Thread
-import time
+from concurrent.futures import ThreadPoolExecutor
 import requests
 from requests.exceptions import RequestException
 import os
 from tqdm import tqdm
+import logging
 
-def load_common_paths():
-    directory_of_this_script = os.path.dirname(__file__)
-    path_to_common_paths = os.path.join(directory_of_this_script, 'common_paths.txt')
-    if not os.path.exists(path_to_common_paths):
-        raise FileNotFoundError(f"O arquivo 'common_paths.txt' não foi encontrado em: {path_to_common_paths}")
-    with open(path_to_common_paths, 'r') as file:
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
+
+
+def load_seclists_paths():
+    seclists_path = '../SecLists/Discovery/Web-Content/common.txt'
+    if not os.path.exists(seclists_path):
+        raise FileNotFoundError(f"O arquivo 'common.txt' não foi encontrado em: {seclists_path}")
+    with open(seclists_path, 'r') as file:
         return [line.strip() for line in file if line.strip()]
 
 
@@ -22,20 +26,15 @@ def check_path(url, results):
 
 
 def directory_enumeration(url):
-    common_paths = load_common_paths()
+    common_paths = load_seclists_paths()
     results = []
-    threads = []
     progress_bar = tqdm(total=len(common_paths), desc="Buscando diretórios expostos", unit="dir")
 
-    for path in common_paths:
-        full_url = f"{url}/{path}"
-        thread = Thread(target=check_path, args=(full_url, results))
-        threads.append(thread)
-        thread.start()
-
-    for thread in threads:
-        thread.join()
-        progress_bar.update(1)  # Atualiza a barra de progresso cada vez que uma thread é concluída
+    with ThreadPoolExecutor(max_workers=30) as executor:  # Limita a 10 threads simultâneas
+        futures = [executor.submit(check_path, f"{url}/{path}", results) for path in common_paths]
+        for future in futures:
+            future.result()
+            progress_bar.update(1)
 
     progress_bar.close()
     if results:
@@ -47,10 +46,11 @@ def directory_enumeration(url):
 
 
 def fetch_url(url):
+    session = requests.Session()
     if not url.startswith(('http://', 'https://')):
         url = 'http://' + url  # Assume http como padrão se nenhum esquema for fornecido
     try:
-        response = requests.get(url, timeout=5)
+        response = session.get(url, timeout=5)
         return response if response.ok else None
     except RequestException as e:
         logger.error(f"Erro ao conectar a {url}: {e}")
