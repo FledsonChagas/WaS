@@ -6,11 +6,14 @@ from lib.content_analysis import analyze_content
 from lib.authentication_tests import test_authentication
 from lib.performance_tests import performance_test_menu
 from lib.subdomain_discovery import run_subdomain_discovery
+import json
+
 
 def display_logo():
     logo = """
+
    ▄████████  ▄█     ▄█   ▄█▄  ▄█          ▄████████    ▄████████  ▄████████  ▄██████▄  ███▄▄▄▄   
-  ███    ███ ███    ███ ▄███▀ ███         ███    ███   ███    ███ ███    ███ ███▀▀▀██▄ 
+  ███    ███ ███    ███ ▄███▀ ███         ███    ███   ███    ███ ███    ███ ███▀▀▀▀██▄ ███   ██▄
   ███    ███ ███▌   ███▐██▀   ███▌        ███    ███   ███    █▀  ███    █▀  ███    ███ ███   ███ 
  ▄███▄▄▄▄██▀ ███▌  ▄█████▀    ███▌       ▄███▄▄▄▄██▀  ▄███▄▄▄     ███        ███    ███ ███   ███ 
 ▀▀███▀▀▀▀▀   ███▌ ▀▀█████▄    ███▌      ▀▀███▀▀▀▀▀   ▀▀███▀▀▀     ███        ███    ███ ███   ███ 
@@ -22,6 +25,7 @@ def display_logo():
     print(logo)
     print("                               Web Asset Scanner")
     print("\n                         Silencioso, Letal e Furtivo\n")
+
 
 def menu():
     print("\nSelecione uma função para executar:\n")
@@ -38,11 +42,14 @@ def menu():
     choice = input("Selecione uma opção do menu: ")
     return choice
 
+
 def execute_choice(choice, url, response):
     if choice == '1':
-        check_security_headers(response.headers)
+        result = check_security_headers(response.headers, url)
+        print(json.dumps(result, indent=4, ensure_ascii=False))
     elif choice == '2':
-        analyze_cookies(response.headers)
+        result = analyze_cookies(response.headers)
+        print(json.dumps(result, indent=4, ensure_ascii=False))
     elif choice == '3':
         directory_enumeration(url)
     elif choice == '4':
@@ -56,8 +63,9 @@ def execute_choice(choice, url, response):
     elif choice == '8':
         run_subdomain_discovery(url)
     elif choice == '9':
-        check_security_headers(response.headers)
-        analyze_cookies(response.headers)
+        result_headers = check_security_headers(response.headers)
+        result_cookies = analyze_cookies(response.headers)
+        print(json.dumps({"security_headers": result_headers, "cookies": result_cookies}, indent=4, ensure_ascii=False))
         directory_enumeration(url)
         test_sqli(url)
         analyze_content(response.text)
@@ -69,6 +77,7 @@ def execute_choice(choice, url, response):
     else:
         print("Escolha inválida, por favor selecione novamente.")
     return True
+
 
 def main(url):
     response = fetch_url(url)
@@ -111,6 +120,7 @@ def main(url):
         else:
             print("Escolha inválida, saindo do programa.")
             break
+
 
 if __name__ == "__main__":
     display_logo()
