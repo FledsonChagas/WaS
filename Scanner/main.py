@@ -4,7 +4,7 @@ from lib.directory_enumeration import directory_enumeration
 from lib.injection_tests import test_sqli
 from lib.content_analysis import analyze_content
 from lib.authentication_tests import test_authentication
-from lib.performance_tests import stress_test
+from lib.performance_tests import performance_test_menu
 
 def display_logo():
     logo = """
@@ -17,10 +17,10 @@ def display_logo():
   ███    ███ ███    ███ ▀███▄ ███         ███    ███   ███    ███ ███    ███ ███    ███ ███   ███ 
   ███    ███ █▀     ███   ▀█▀ █▀          ███    ███   ██████████ ████████▀   ▀██████▀   ▀█   █▀  
   ███    ███        ▀                     ███    ███                                              
-    """
+                                                                                         by M4G0"""
     print(logo)
-    print("                          Web Asset Scanner")
-    print("\n                      Silencioso, Letal e Furtivo\n")
+    print("                               Web Asset Scanner")
+    print("\n                         Silencioso, Letal e Furtivo\n")
 
 def menu():
     print("\nSelecione uma função para executar:\n")
@@ -50,7 +50,7 @@ def execute_choice(choice, url, response):
     elif choice == '6':
         test_authentication(url)
     elif choice == '7':
-        stress_test(url, 100)
+        performance_test_menu(url)
     elif choice == '8':
         check_security_headers(response.headers)
         analyze_cookies(response.headers)
@@ -58,7 +58,7 @@ def execute_choice(choice, url, response):
         test_sqli(url)
         analyze_content(response.text)
         test_authentication(url)
-        stress_test(url, 100)
+        performance_test_menu(url)
     elif choice == '9':
         return False
     else:
