@@ -1,17 +1,33 @@
 import requests
 import json
+from tqdm import tqdm
+import sys
 
 def get_subdomains_from_crtsh(domain):
-    url = f"https://crt.sh/?q=%25.{domain}&output=json"
+    url = f"https://crt.sh/?q=%.{domain}&output=json"
     response = requests.get(url)
     if response.status_code != 200:
         raise Exception("Failed to fetch data from crt.sh")
 
     subdomains = set()
-    for cert in response.json():
-        if cert.get('name_value'):
+    try:
+        data = response.json()
+    except json.JSONDecodeError:
+        print("Failed to decode JSON response from crt.sh")
+        return []
+
+    print(f"Total certificates found: {len(data)}")  # Depuração: Número total de certificados encontrados
+
+    progress_bar = tqdm(total=len(data), desc="Processing subdomains")
+    for cert in data:
+        if 'name_value' in cert:
             subdomains.update(cert['name_value'].split('\n'))
-    return list(subdomains)
+        progress_bar.update(1)
+    progress_bar.close()
+
+    subdomains = list(filter(None, subdomains))
+    print(f"Total unique subdomains found: {len(subdomains)}")  # Depuração: Número total de subdomínios únicos
+    return subdomains
 
 def run_subdomain_discovery(domain):
     subdomains = get_subdomains_from_crtsh(domain)
@@ -19,8 +35,9 @@ def run_subdomain_discovery(domain):
         "domain": domain,
         "found_subdomains": subdomains
     }
-    output_json = json.dumps(output, indent=4)
+    output_json = json.dumps(output, indent=4, ensure_ascii=False)
     print(output_json)
+    print(f"\nTotal subdomains found: {len(subdomains)}")  # Exibir o total de subdomínios encontrados
     post_test_menu(domain)
 
 def post_test_menu(url):
@@ -43,3 +60,8 @@ def post_test_menu(url):
             sys.exit()
         else:
             print("Escolha inválida, por favor, tente novamente.")
+
+# Testando a função com um domínio de exemplo
+if __name__ == "__main__":
+    domain = input("Digite o domínio para descobrir subdomínios: ")
+    run_subdomain_discovery(domain)
