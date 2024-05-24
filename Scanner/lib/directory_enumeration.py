@@ -1,11 +1,11 @@
 from .http_requests import fetch_url
 from threading import Thread, Lock, Semaphore
-import requests
-from requests.exceptions import RequestException
 import os
 from tqdm import tqdm
 from bs4 import BeautifulSoup
 from urllib.parse import urljoin, urlparse
+import random
+import time
 
 lock = Lock()
 visited_urls = set()
@@ -32,15 +32,6 @@ def detect_custom_404(url):
 def is_custom_404(response):
     return custom_404_text and custom_404_text in response.text
 
-def fetch_url(url, method='GET'):
-    if not url.startswith(('http://', 'https://')):
-        url = 'http://' + url  # Assume http como padrão se nenhum esquema for fornecido
-    try:
-        response = requests.request(method, url, timeout=5)
-        return response if response.status_code not in [404] else None
-    except RequestException as e:
-        return None
-
 def check_path(url, results, progress_bar, methods):
     for method in methods:
         response = fetch_url(url, method=method)
@@ -54,6 +45,7 @@ def check_path(url, results, progress_bar, methods):
                         full_url = urljoin(url, subdir)
                         if full_url not in visited_urls:
                             visited_urls.add(full_url)
+                            time.sleep(random.uniform(0.1, 1.0))  # Atraso aleatório entre 100ms e 1s
                             thread = Thread(target=check_path, args=(full_url, results, progress_bar, methods))
                             semaphore.acquire()
                             thread.start()
@@ -82,10 +74,12 @@ def directory_enumeration(url):
     threads = []
     progress_bar = tqdm(total=len(common_paths), desc="Buscando diretórios expostos", unit="dir")
 
+    # Verificar caminhos comuns
     for path in common_paths:
         full_url = f"{url}/{path}"
         if full_url not in visited_urls:
             visited_urls.add(full_url)
+            time.sleep(random.uniform(0.1, 1.0))  # Atraso aleatório entre 100ms e 1s
             semaphore.acquire()
             thread = Thread(target=check_path, args=(full_url, results, progress_bar, http_methods))
             threads.append(thread)
