@@ -77,17 +77,34 @@ def get_ip_address(url):
 def calculate_security_grade(missing_count):
     """Calcula a nota de segurança com base no número de cabeçalhos ausentes."""
     if missing_count == 0:
-        return "A"
+        return "A+"
     elif missing_count == 1:
-        return "B"
+        return "A"
     elif missing_count == 2:
-        return "C"
+        return "B"
     elif missing_count == 3:
-        return "D"
+        return "C"
     elif missing_count == 4:
+        return "D"
+    elif missing_count == 5:
         return "E"
     else:
         return "F"
+
+def get_security_message(grade):
+    """Retorna uma mensagem apropriada com base na nota de segurança."""
+    if grade == "A":
+        return "Great grade! Your security posture is excellent."
+    elif grade == "B":
+        return "Good job! Your security posture is good, but there's room for improvement."
+    elif grade == "C":
+        return "Fair grade. Your security posture is okay, but there are some issues to address."
+    elif grade == "D":
+        return "Poor grade. You should improve your security posture."
+    elif grade == "E":
+        return "Very poor grade. Immediate improvements are needed for your security posture."
+    else:
+        return "Ouch, you should work on your security posture immediately."
 
 def check_security_headers(headers, url):
     headers = {k.lower(): v for k, v in headers.items()}  # Converte as chaves dos cabeçalhos para minúsculas
@@ -118,10 +135,14 @@ def check_security_headers(headers, url):
                 "description": description
             }
 
+    cookie_analysis = analyze_cookies(headers)
+    results["cookies"] = cookie_analysis
+
     missing_headers = industry_benchmark(headers)
     results["missing_recommended_headers"] = missing_headers
     missing_count = len(missing_headers)
     security_grade = calculate_security_grade(missing_count)
+    security_message = get_security_message(security_grade)
 
     ip_address = get_ip_address(url)
     report_time = datetime.utcnow().strftime('%d %b %Y %H:%M:%S UTC')
@@ -133,8 +154,9 @@ def check_security_headers(headers, url):
         "Report Time": report_time,
         "Headers": list(headers.keys()),
         "Advanced": {
-            "Ouch, you should work on your security posture immediately:": {
-                "Missing Headers": results["missing_recommended_headers"]
+            security_message: {
+                "Missing Headers": results["missing_recommended_headers"],
+                "Cookie Analysis": cookie_analysis
             }
         },
         "Raw Headers": headers
@@ -144,24 +166,37 @@ def check_security_headers(headers, url):
 
 def analyze_cookies(headers):
     headers = {k.lower(): v for k, v in headers.items()}  # Converte as chaves dos cabeçalhos para minúsculas
-    results = {}
+    results = {
+        'cookies': [],
+        'issues': []
+    }
+
     if 'set-cookie' in headers:
-        cookies = headers['set-cookie'].split(';')
-        flags = {'HttpOnly': False, 'Secure': False}
+        cookies = headers['set-cookie'].split(',')
         for cookie in cookies:
-            if 'httponly' in cookie.lower():
-                flags['HttpOnly'] = True
-            if 'secure' in cookie.lower():
-                flags['Secure'] = True
+            cookie_data = {}
+            parts = cookie.split(';')
+            for part in parts:
+                if '=' in part:
+                    key, value = part.split('=', 1)
+                    cookie_data[key.strip().lower()] = value.strip()
+                else:
+                    cookie_data[part.strip().lower()] = True
 
-        results['HttpOnly'] = flags['HttpOnly']
-        results['Secure'] = flags['Secure']
+            results['cookies'].append(cookie_data)
 
-        if not flags['HttpOnly']:
-            results['issues'] = results.get('issues', []) + ["Aviso: Cookie sem flag HttpOnly."]
-        if not flags['Secure']:
-            results['issues'] = results.get('issues', []) + ["Aviso: Cookie sem flag Secure."]
+            if 'httponly' not in cookie_data:
+                results['issues'].append("Aviso: Cookie sem flag HttpOnly.")
+            if 'secure' not in cookie_data:
+                results['issues'].append("Aviso: Cookie sem flag Secure.")
+            if 'samesite' not in cookie_data:
+                results['issues'].append("Aviso: Cookie sem flag SameSite.")
+            else:
+                samesite_value = cookie_data['samesite'].lower()
+                if samesite_value not in ['lax', 'strict', 'none']:
+                    results['issues'].append(f"Aviso: Cookie com flag SameSite inválida ({samesite_value}). Deve ser 'Lax', 'Strict' ou 'None'.")
+
     else:
-        results['issues'] = ["Nenhum cookie configurado."]
+        results['issues'].append("Nenhum cookie configurado.")
 
     return results
