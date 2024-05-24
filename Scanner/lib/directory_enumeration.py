@@ -4,10 +4,12 @@ import requests
 from requests.exceptions import RequestException
 import os
 from tqdm import tqdm
+from bs4 import BeautifulSoup
+from urllib.parse import urljoin, urlparse
 
 lock = Lock()
 visited_urls = set()
-max_threads = 100  # Número máximo de threads simultâneas
+max_threads = 60  # Número máximo de threads simultâneas
 semaphore = Semaphore(max_threads)
 custom_404_text = ""
 
@@ -45,22 +47,32 @@ def check_path(url, results, progress_bar, methods):
         if response and response.status_code == 200 and not is_custom_404(response):
             with lock:
                 results.append((url, method, response.status_code))
+                # Extrair subdiretórios encontrados para escaneamento adicional
+                if 'text/html' in response.headers.get('Content-Type', ''):
+                    subdirs = extract_subdirectories(response.text, url)
+                    for subdir in subdirs:
+                        full_url = urljoin(url, subdir)
+                        if full_url not in visited_urls:
+                            visited_urls.add(full_url)
+                            thread = Thread(target=check_path, args=(full_url, results, progress_bar, methods))
+                            semaphore.acquire()
+                            thread.start()
+                            threads.append(thread)
                 break
     with lock:
         progress_bar.update(1)
     semaphore.release()
 
-def extract_subdirectories(html):
+def extract_subdirectories(html, base_url):
+    soup = BeautifulSoup(html, 'html.parser')
     subdirs = set()
-    for line in html.splitlines():
-        if 'href=' in line:
-            parts = line.split('href=')
-            for part in parts[1:]:
-                if part.startswith('"') or part.startswith("'"):
-                    part = part[1:]
-                subdir = part.split('/')[0].split('?')[0].split('#')[0]
-                if subdir and not subdir.startswith(('http:', 'https:', '/', '.', '#')):
-                    subdirs.add(subdir)
+    for link in soup.find_all('a', href=True):
+        href = link['href']
+        full_url = urljoin(base_url, href)
+        parsed_url = urlparse(full_url)
+        path = parsed_url.path
+        if path and not path.startswith(('/', 'http:', 'https:', '#')):
+            subdirs.add(path)
     return subdirs
 
 def directory_enumeration(url):
@@ -98,7 +110,7 @@ def directory_enumeration(url):
         if response:
             print(f"Headers: {response.headers}")
             if 'text/html' in response.headers.get('Content-Type', ''):
-                subdirs = extract_subdirectories(response.text)
+                subdirs = extract_subdirectories(response.text, result[0])
                 if subdirs:
                     print(f"Subdiretórios encontrados: {', '.join(subdirs)}")
 
