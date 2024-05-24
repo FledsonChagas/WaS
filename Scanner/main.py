@@ -5,11 +5,12 @@ from lib.injection_tests import test_sqli
 from lib.content_analysis import analyze_content
 from lib.authentication_tests import test_authentication
 from lib.performance_tests import performance_test_menu
+from lib.subdomain_discovery import run_subdomain_discovery
 
 def display_logo():
     logo = """
    ▄████████  ▄█     ▄█   ▄█▄  ▄█          ▄████████    ▄████████  ▄████████  ▄██████▄  ███▄▄▄▄   
-  ███    ███ ███    ███ ▄███▀ ███         ███    ███   ███    ███ ███    ███ ███    ███ ███▀▀▀██▄ 
+  ███    ███ ███    ███ ▄███▀ ███         ███    ███   ███    ███ ███    ███ ███▀▀▀██▄ 
   ███    ███ ███▌   ███▐██▀   ███▌        ███    ███   ███    █▀  ███    █▀  ███    ███ ███   ███ 
  ▄███▄▄▄▄██▀ ███▌  ▄█████▀    ███▌       ▄███▄▄▄▄██▀  ▄███▄▄▄     ███        ███    ███ ███   ███ 
 ▀▀███▀▀▀▀▀   ███▌ ▀▀█████▄    ███▌      ▀▀███▀▀▀▀▀   ▀▀███▀▀▀     ███        ███    ███ ███   ███ 
@@ -30,9 +31,10 @@ def menu():
     print("4. Testar SQL Injection")
     print("5. Analisar conteúdo")
     print("6. Testar autenticação")
-    print("7. Teste de estresse")
-    print("8. Executar todos os testes")
-    print("9. Sair\n")
+    print("7. Teste de performance")
+    print("8. Descobrir subdomínios")
+    print("9. Executar todos os testes")
+    print("10. Sair\n")
     choice = input("Selecione uma opção do menu: ")
     return choice
 
@@ -52,6 +54,8 @@ def execute_choice(choice, url, response):
     elif choice == '7':
         performance_test_menu(url)
     elif choice == '8':
+        run_subdomain_discovery(url)
+    elif choice == '9':
         check_security_headers(response.headers)
         analyze_cookies(response.headers)
         directory_enumeration(url)
@@ -59,7 +63,8 @@ def execute_choice(choice, url, response):
         analyze_content(response.text)
         test_authentication(url)
         performance_test_menu(url)
-    elif choice == '9':
+        run_subdomain_discovery(url)
+    elif choice == '10':
         return False
     else:
         print("Escolha inválida, por favor selecione novamente.")
