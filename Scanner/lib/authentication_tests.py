@@ -11,14 +11,14 @@ from .http_requests import fetch_url
 lock = Lock()
 
 def load_common_credentials():
-    credentials_path = os.path.join(os.path.dirname(__file__), 'seclists', 'Passwords', 'xato-net-10-million-passwords-dup.txt')
+    credentials_path = os.path.join(os.path.dirname(__file__), 'RedList', 'Passwords', 'xato-net-10-million-passwords-dup.txt')
     if not os.path.exists(credentials_path):
         raise FileNotFoundError(f"O arquivo 'xato-net-10-million-passwords-dup.txt' não foi encontrado em: {credentials_path}")
     with open(credentials_path, 'r', encoding='latin-1') as file:
         return [line.strip().split(':') for line in file if ':' in line.strip()]
 
 def load_sqli_payloads():
-    payloads_path = os.path.join(os.path.dirname(__file__), 'seclists', 'Fuzzing', 'SQLi', 'quick-SQLi.txt')
+    payloads_path = os.path.join(os.path.dirname(__file__), 'RedList', 'Fuzzing', 'SQLi', 'quick-SQLi.txt')
     if not os.path.exists(payloads_path):
         raise FileNotFoundError(f"O arquivo 'quick-SQLi.txt' não foi encontrado em: {payloads_path}")
     with open(payloads_path, 'r', encoding='latin-1') as file:

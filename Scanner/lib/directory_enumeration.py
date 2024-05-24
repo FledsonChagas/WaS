@@ -17,7 +17,7 @@ http_methods = ['GET', 'POST', 'PUT', 'DELETE', 'HEAD']
 
 def load_common_paths():
     directory_of_this_script = os.path.dirname(__file__)
-    path_to_common_paths = os.path.join(directory_of_this_script, 'seclists', 'Discovery', 'Web-Content', 'common.txt')
+    path_to_common_paths = os.path.join(directory_of_this_script, 'RedList', 'Discovery', 'Web-Content', 'common.txt')
     if not os.path.exists(path_to_common_paths):
         raise FileNotFoundError(f"O arquivo 'common.txt' não foi encontrado em: {path_to_common_paths}")
     with open(path_to_common_paths, 'r', encoding='latin-1') as file:  # Usando encoding para suportar caracteres especiais
