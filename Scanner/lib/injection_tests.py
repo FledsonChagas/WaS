@@ -50,7 +50,7 @@ def fetch_url(url, method='GET', data=None):
             response = requests.post(url, data=data, timeout=5)
         return response if response.status_code not in [404] else None
     except RequestException as e:
-        print(f"Erro ao conectar a {url}: {e}")
+
         return None
 
 
