@@ -107,4 +107,3 @@ def directory_enumeration(url):
                 subdirs = extract_subdirectories(response.text, result[0])
                 if subdirs:
                     print(f"Subdiretórios encontrados: {', '.join(subdirs)}")
-
