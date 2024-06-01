@@ -33,6 +33,7 @@ def is_custom_404(response):
     return custom_404_text and custom_404_text in response.text
 
 def check_path(url, results, progress_bar, methods):
+    global threads  # Adiciona essa linha para definir threads como global
     for method in methods:
         response = fetch_url(url, method=method)
         if response and response.status_code == 200 and not is_custom_404(response):
@@ -45,7 +46,7 @@ def check_path(url, results, progress_bar, methods):
                         full_url = urljoin(url, subdir)
                         if full_url not in visited_urls:
                             visited_urls.add(full_url)
-                            time.sleep(random.uniform(0.1, 1.0))  # Atraso aleatório entre 100ms e 1s
+                            time.sleep(random.uniform(0.01, 0.1))  # Atraso aleatório entre 100ms e 1s
                             thread = Thread(target=check_path, args=(full_url, results, progress_bar, methods))
                             semaphore.acquire()
                             thread.start()
@@ -68,6 +69,7 @@ def extract_subdirectories(html, base_url):
     return subdirs
 
 def directory_enumeration(url):
+    global threads  # Adiciona essa linha para definir threads como global
     detect_custom_404(url)
     common_paths = load_common_paths()
     results = []
@@ -79,7 +81,7 @@ def directory_enumeration(url):
         full_url = f"{url}/{path}"
         if full_url not in visited_urls:
             visited_urls.add(full_url)
-            time.sleep(random.uniform(0.1, 1.0))  # Atraso aleatório entre 100ms e 1s
+            time.sleep(random.uniform(0.01, 0.1))  # Atraso aleatório entre 10ms e 100ms
             semaphore.acquire()
             thread = Thread(target=check_path, args=(full_url, results, progress_bar, http_methods))
             threads.append(thread)
