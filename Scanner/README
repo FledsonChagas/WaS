@@ -14,6 +14,8 @@ Estrutura do projeto
 
 scanner/
 │
+├── front/
+│   └── SecHeadReport.py
 ├── lib/
 │   ├── __init__.py
 │   ├── http_requests.py
@@ -28,5 +30,8 @@ scanner/
 │       └── Discovery/
 │           └── Web-Content/
 │               └── common.txt
+│
+│
+└── app.py
 │
 └── main.py

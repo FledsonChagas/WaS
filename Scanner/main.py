@@ -10,6 +10,19 @@ import json
 
 
 def display_logo():
+    """Displays the logo and title of the web asset scanner.
+
+    This method prints the logo and title of the web asset scanner on the console.
+
+    Example:
+        The following code demonstrates the usage of this method:
+
+        display_logo()
+
+    Output:
+        The method will print the logo and title of the web asset scanner on the console.
+
+    """
     logo = """
 
    ▄████████  ▄█     ▄█   ▄█▄  ▄█          ▄████████    ▄████████  ▄████████  ▄██████▄  ███▄▄▄▄   
@@ -28,6 +41,12 @@ def display_logo():
 
 
 def menu():
+    """
+    Display menu options for the user to select from and prompt for their choice.
+
+    Returns:
+        str: The user's choice from the menu options.
+    """
     print("\nSelecione uma função para executar:\n")
     print("1. Verificar cabeçalhos de segurança")
     print("2. Analisar cookies")
@@ -44,6 +63,17 @@ def menu():
 
 
 def execute_choice(choice, url, response):
+    """
+    Executes a specific choice based on the given input.
+
+    Parameters:
+    choice (str): The choice selected by the user.
+    url (str): The URL to be analyzed.
+    response (object): The response object received from the HTTP request.
+
+    Returns:
+    bool: True if the function is successful and should continue running, False otherwise.
+    """
     if choice == '1':
         result = check_security_headers(response.headers, url)
         print(json.dumps(result, indent=4, ensure_ascii=False))
@@ -80,6 +110,15 @@ def execute_choice(choice, url, response):
 
 
 def main(url):
+    """
+    Main method that handles the execution of the program.
+
+    Parameters:
+    - url (str): The URL to be scanned.
+
+    Returns:
+    None
+    """
     response = fetch_url(url)
     if not response:
         print("Falha ao conectar com a URL fornecida. Por favor, tente novamente.")

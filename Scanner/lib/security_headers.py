@@ -3,7 +3,30 @@ from datetime import datetime
 import socket
 
 def analyze_hsts(header_value):
-    """Analisa o cabeçalho Strict-Transport-Security para verificar configurações recomendadas."""
+    """
+
+    Analyze HSTS
+
+    This method analyzes the value of the HSTS (HTTP Strict Transport Security) header and checks for any issues that might exist.
+
+    Parameters:
+    - header_value (str): The value of the HSTS header to be analyzed.
+
+    Returns:
+    - issues (list): A list of issues found in the HSTS header value.
+
+    Note:
+    - The method assumes that the header value provided is a valid HSTS header value.
+
+    Example:
+    header_value = "max-age=3600; includeSubDomains"
+    issues = analyze_hsts(header_value)
+    print(issues)
+
+    Output:
+    ['max-age muito baixo (3600 segundos). Recomenda-se um mínimo de 31536000 segundos.', 'Aviso: 'includeSubDomains' não encontrado.']
+
+    """
     issues = []
     directives = header_value.split(';')
     max_age_found = False
@@ -20,7 +43,35 @@ def analyze_hsts(header_value):
     return issues
 
 def analyze_csp(csp_value):
-    """Analisa detalhadamente a política de segurança de conteúdo."""
+    """
+
+    Analyze the given Content Security Policy (CSP) value to identify any potential issues.
+
+    Parameters:
+    - csp_value (str): The value of the Content Security Policy (CSP) to be analyzed.
+
+    Returns:
+    - issues (list): A list of issues found in the CSP value. Each issue is represented as a string.
+
+    Examples:
+        >>> csp_value = "default-src 'self'; script-src 'unsafe-inline'"
+        >>> analyze_csp(csp_value)
+        ["CSP contém 'unsafe-inline' que é inseguro para scripts."]
+
+        >>> csp_value = "default-src 'self'; script-src 'unsafe-eval'"
+        >>> analyze_csp(csp_value)
+        ["CSP contém 'unsafe-eval' que é inseguro para scripts."]
+
+        >>> csp_value = "script-src 'self'; font-src 'self'"
+        >>> analyze_csp(csp_value)
+        ["CSP default-src não é restrito a 'self'."]
+
+        >>> csp_value = "script-src 'self'; img-src 'self'"
+        >>> analyze_csp(csp_value)
+        ["CSP não define 'default-src'."]
+
+
+    """
     issues = []
     if "'unsafe-inline'" in csp_value:
         issues.append("CSP contém 'unsafe-inline' que é inseguro para scripts.")
@@ -37,25 +88,75 @@ def analyze_csp(csp_value):
     return issues
 
 def analyze_x_frame_options(header_value):
-    """Analisa o cabeçalho X-Frame-Options."""
+    """
+    Analyzes the value of the X-Frame-Options header.
+
+    This function checks if the provided header value is valid according to the X-Frame-Options specification.
+    It returns a list of warning messages if the value is not 'DENY' or 'SAMEORIGIN'.
+
+    :param header_value: The value of the X-Frame-Options header to be analyzed.
+    :type header_value: str
+
+    :return: A list of warning messages if the value is not 'DENY' or 'SAMEORIGIN'. Otherwise, an empty list.
+    :rtype: list[str]
+    """
     if header_value not in ["DENY", "SAMEORIGIN"]:
         return [f"Valor não recomendado ({header_value}). Deve ser 'DENY' ou 'SAMEORIGIN'."]
     return []
 
 def analyze_x_content_type_options(header_value):
-    """Analisa o cabeçalho X-Content-Type-Options."""
+    """
+    Analyzes the value of the 'X-Content-Type-Options' header.
+
+    Args:
+        header_value (str): The value of the 'X-Content-Type-Options' header.
+
+    Returns:
+        list: List of possible recommendations or an empty list if the header value is 'nosniff'.
+
+    Example:
+        >>> analyze_x_content_type_options("nosniff")
+        []
+
+        >>> analyze_x_content_type_options("other")
+        ["Valor não recomendado (other). Deve ser 'nosniff'."]
+    """
     if header_value != "nosniff":
         return [f"Valor não recomendado ({header_value}). Deve ser 'nosniff'."]
     return []
 
 def analyze_x_xss_protection(header_value):
-    """Analisa o cabeçalho X-XSS-Protection."""
+    """
+    Analyzes the X-XSS-Protection header value.
+
+    This method checks if the provided header value is "1; mode=block". If it is not, it returns an error message indicating that the value is not recommended.
+
+    Parameters:
+    header_value (str): The value of the X-XSS-Protection header to be analyzed.
+
+    Returns:
+    list: A list containing error messages if the header value is not recommended. If the header value is "1; mode=block", an empty list is returned.
+
+    """
     if header_value != "1; mode=block":
         return [f"Valor não recomendado ({header_value}). Deve ser '1; mode=block'."]
     return []
 
 def industry_benchmark(headers):
-    """Compara os cabeçalhos de segurança encontrados com as práticas recomendadas da indústria."""
+    """
+    Checks the given HTTP headers against a list of recommended headers commonly used in the industry.
+
+    Args:
+        headers (list): A list of HTTP headers to be checked.
+
+    Returns:
+        list: A list of recommended headers missing from the given headers.
+
+    Example:
+        >>> headers = ['Content-Security-Policy', 'X-Frame-Options', 'Referrer-Policy']
+        >>> industry_benchmark(headers)
+        ['Strict-Transport-Security', 'X-Content-Type-Options', 'Permissions-Policy']
+    """
     recommended_headers = [
         'Strict-Transport-Security',
         'Content-Security-Policy',
@@ -68,14 +169,36 @@ def industry_benchmark(headers):
     return missing
 
 def get_ip_address(url):
-    """Obtém o endereço IP a partir da URL."""
+    """
+    Get the IP address of a given URL.
+
+    Parameters:
+    url (str): The URL for which to retrieve the IP address.
+
+    Returns:
+    str: The IP address corresponding to the given URL.
+
+    Raises:
+    socket.error: If the IP address for the given URL cannot be found.
+
+    Example:
+    >>> get_ip_address('https://www.example.com')
+    '93.184.216.34'
+    >>> get_ip_address('https://www.invalidurl.com')
+    'IP não encontrado'
+    """
     try:
         return socket.gethostbyname(url.split('//')[-1].split('/')[0])
     except socket.error:
         return "IP não encontrado"
 
 def calculate_security_grade(missing_count):
-    """Calcula a nota de segurança com base no número de cabeçalhos ausentes."""
+    """
+    Calculate the security grade based on the number of missing items.
+
+    :param missing_count: The number of missing items (int).
+    :return: The security grade (str).
+    """
     if missing_count == 0:
         return "A+"
     elif missing_count == 1:
@@ -92,7 +215,15 @@ def calculate_security_grade(missing_count):
         return "F"
 
 def get_security_message(grade):
-    """Retorna uma mensagem apropriada com base na nota de segurança."""
+    """
+    Returns a message based on the security grade.
+
+    Args:
+        grade (str): The security grade.
+
+    Returns:
+        str: The message based on the security grade.
+    """
     if grade == "A":
         return "Great grade! Your security posture is excellent."
     elif grade == "B":
@@ -107,6 +238,17 @@ def get_security_message(grade):
         return "Ouch, you should work on your security posture immediately."
 
 def check_security_headers(headers, url):
+    """
+    Check security headers of a given URL.
+
+    Parameters:
+    - headers (dict): A dictionary containing the headers of the URL.
+    - url (str): The URL to analyze.
+
+    Returns:
+    - report (dict): A dictionary containing the security report summary, site information, headers analysis, and raw headers.
+
+    """
     headers = {k.lower(): v for k, v in headers.items()}  # Converte as chaves dos cabeçalhos para minúsculas
     results = {}
     security_headers = {
@@ -165,6 +307,42 @@ def check_security_headers(headers, url):
     return report
 
 def analyze_cookies(headers):
+    """
+
+    The `analyze_cookies` method analyzes the headers provided to it and returns a dictionary with information about the cookies and any potential issues found.
+
+    Parameters:
+    - `headers` (dict): A dictionary containing the headers to be analyzed.
+
+    Returns:
+    - `results` (dict): A dictionary with the following keys:
+        - `'cookies'` (list): A list of dictionaries, each representing a cookie found in the headers. Each cookie dictionary contains key-value pairs representing the various attributes of the cookie.
+        - `'issues'` (list): A list of strings, each representing a potential issue found with a cookie.
+
+    Example Usage:
+    ```
+    headers = {
+        'Set-Cookie': 'cookie1=value1; HttpOnly, cookie2=value2; Secure, cookie3=value3; SameSite=Lax'
+    }
+    analysis = analyze_cookies(headers)
+    print(analysis)
+    ```
+
+    Output:
+    ```
+    {
+        'cookies': [
+            {'cookie1': 'value1', 'httponly': True},
+            {'cookie2': 'value2', 'secure': True},
+            {'cookie3': 'value3', 'samesite': 'Lax'}
+        ],
+        'issues': [
+            'Aviso: Cookie sem flag HttpOnly.',
+            'Aviso: Cookie sem flag Secure.'
+        ]
+    }
+    ```
+    """
     headers = {k.lower(): v for k, v in headers.items()}  # Converte as chaves dos cabeçalhos para minúsculas
     results = {
         'cookies': [],
