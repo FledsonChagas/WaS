@@ -22,7 +22,7 @@ error_indicators = [
 
 def load_sqli_payloads():
     directory_of_this_script = os.path.dirname(__file__)
-    path_to_sqli_payloads = os.path.join(directory_of_this_script, 'RedList', 'Fuzzing', 'SQLi', 'quick-SQLi.txt')
+    path_to_sqli_payloads = os.path.join(directory_of_this_script, 'SecList', 'Fuzzing', 'SQLi', 'quick-SQLi.txt')
     if not os.path.exists(path_to_sqli_payloads):
         raise FileNotFoundError(f"O arquivo 'sql_injection.txt' não foi encontrado em: {path_to_sqli_payloads}")
     with open(path_to_sqli_payloads, 'r', encoding='latin-1') as file:

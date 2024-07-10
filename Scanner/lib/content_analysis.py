@@ -6,7 +6,7 @@ import os
 
 def load_sensitive_keywords():
     directory_of_this_script = os.path.dirname(__file__)
-    seclists_path = os.path.join(directory_of_this_script, 'RedList', 'Discovery', 'Web-Content', 'burp-parameter-names.txt')
+    seclists_path = os.path.join(directory_of_this_script, 'SecList', 'Discovery', 'Web-Content', 'burp-parameter-names.txt')
     if not os.path.exists(seclists_path):
         raise FileNotFoundError(f"O arquivo '{seclists_path}' não foi encontrado.")
     with open(seclists_path, 'r', encoding='latin-1') as file:
